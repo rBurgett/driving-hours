@@ -16,12 +16,14 @@ import (
 
 type AdminHandler struct {
 	storage  storage.Storage
+	sessions *auth.SessionManager
 	renderer *templates.Renderer
 }
 
-func NewAdminHandler(s storage.Storage, r *templates.Renderer) *AdminHandler {
+func NewAdminHandler(s storage.Storage, sm *auth.SessionManager, r *templates.Renderer) *AdminHandler {
 	return &AdminHandler{
 		storage:  s,
+		sessions: sm,
 		renderer: r,
 	}
 }
@@ -294,12 +296,7 @@ func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 	deleteUserID := chi.URLParam(r, "id")
-
-	// Prevent self-deletion
-	if deleteUserID == user.ID {
-		http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
-		return
-	}
+	deletingSelf := deleteUserID == user.ID
 
 	deleteUser, err := h.storage.GetUser(deleteUserID)
 	if err != nil || deleteUser == nil {
@@ -307,8 +304,34 @@ func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Prevent deleting self if last admin
+	if deletingSelf && user.IsAdmin() {
+		users, err := h.storage.GetAllUsers()
+		if err != nil {
+			http.Error(w, "Failed to check admin count", http.StatusInternalServerError)
+			return
+		}
+		adminCount := 0
+		for _, u := range users {
+			if u.IsAdmin() {
+				adminCount++
+			}
+		}
+		if adminCount <= 1 {
+			http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
+			return
+		}
+	}
+
 	if err := h.storage.DeleteUser(deleteUserID); err != nil {
 		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		return
+	}
+
+	// Log out if deleting self
+	if deletingSelf {
+		_ = h.sessions.DestroySession(w, r)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 

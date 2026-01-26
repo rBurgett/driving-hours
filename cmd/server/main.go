@@ -64,7 +64,7 @@ func main() {
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(store, sessions, renderer)
-	adminHandler := handlers.NewAdminHandler(store, renderer)
+	adminHandler := handlers.NewAdminHandler(store, sessions, renderer)
 	driverHandler := handlers.NewDriverHandler(store, renderer)
 
 	// Set up router
