@@ -44,7 +44,7 @@ func main() {
 		fmt.Printf("  Password: %s\n", initResult.AdminPassword)
 		fmt.Println("========================================")
 		fmt.Println("  Please save these credentials!")
-		fmt.Println("========================================\n")
+		fmt.Println("========================================")
 	}
 
 	// Clean expired sessions
@@ -118,6 +118,7 @@ func main() {
 		r.Get("/users/{id}", adminHandler.ViewDriver)
 		r.Get("/users/{id}/edit", adminHandler.EditUserForm)
 		r.Post("/users/{id}", adminHandler.UpdateUser)
+		r.Post("/users/{id}/delete", adminHandler.DeleteUser)
 		r.Get("/users/{id}/hours", adminHandler.EditHoursForm)
 		r.Post("/users/{id}/hours", adminHandler.UpdateHours)
 		r.Get("/profile", adminHandler.Profile)

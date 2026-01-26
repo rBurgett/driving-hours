@@ -2,9 +2,9 @@
 <div class="page-header">
     <div class="page-header-content">
         <h1>Manage Users</h1>
-        <p class="text-muted">Create and manage driver accounts</p>
+        <p class="text-muted">Create and manage user accounts</p>
     </div>
-    <a href="/admin/users/new" class="btn btn-primary">Add Driver</a>
+    <a href="/admin/users/new" class="btn btn-primary">Add User</a>
 </div>
 
 {{if .Users}}
@@ -14,6 +14,7 @@
             <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Day Progress</th>
                 <th>Night Progress</th>
                 <th>Total Hours</th>
@@ -25,6 +26,14 @@
             <tr>
                 <td>{{.Name}}</td>
                 <td>{{.Email}}</td>
+                <td>
+                    {{if .IsAdmin}}
+                    <span class="badge badge-admin">Admin</span>
+                    {{else}}
+                    <span class="badge badge-driver">Driver</span>
+                    {{end}}
+                </td>
+                {{if .IsDriver}}
                 <td>
                     <div class="progress-bar-inline">
                         <div class="progress-fill" style="width: {{.DayProgress}}%"></div>
@@ -38,10 +47,21 @@
                     <span class="progress-text">{{formatDecimal .TotalNightHours}}/{{formatDecimal .RequiredNightHours}}h</span>
                 </td>
                 <td>{{formatHours .TotalHours}}</td>
+                {{else}}
+                <td colspan="3" class="text-muted">N/A</td>
+                {{end}}
                 <td class="actions">
+                    {{if .IsDriver}}
                     <a href="/admin/users/{{.ID}}" class="btn btn-secondary btn-xs">View</a>
+                    {{end}}
                     <a href="/admin/users/{{.ID}}/edit" class="btn btn-secondary btn-xs">Edit</a>
+                    {{if .IsDriver}}
                     <a href="/admin/users/{{.ID}}/hours" class="btn btn-secondary btn-xs">Hours</a>
+                    {{end}}
+                    <form method="POST" action="/admin/users/{{.ID}}/delete" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                        {{$.CSRFField}}
+                        <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                    </form>
                 </td>
             </tr>
             {{end}}
@@ -51,7 +71,7 @@
 {{else}}
 <div class="empty-state">
     <p>No users yet.</p>
-    <a href="/admin/users/new" class="btn btn-primary">Add Driver</a>
+    <a href="/admin/users/new" class="btn btn-primary">Add User</a>
 </div>
 {{end}}
 {{end}}

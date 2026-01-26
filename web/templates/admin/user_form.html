@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="page-header">
-    <h1>{{if .IsNew}}Create Driver{{else}}Edit Driver{{end}}</h1>
-    <p class="text-muted">{{if .IsNew}}Add a new driver account{{else}}Update driver information{{end}}</p>
+    <h1>{{if .IsNew}}Create User{{else}}Edit User{{end}}</h1>
+    <p class="text-muted">{{if .IsNew}}Add a new user account{{else}}Update user information{{end}}</p>
 </div>
 
 <div class="form-container">
@@ -15,21 +15,34 @@
     </div>
     {{end}}
 
-    <form method="POST" action="{{if .IsNew}}/admin/users{{else}}/admin/users/{{.Driver.ID}}{{end}}" class="form">
+    <form method="POST" action="{{if .IsNew}}/admin/users{{else}}/admin/users/{{.EditUser.ID}}{{end}}" class="form">
         {{.CSRFField}}
 
         <div class="form-group">
             <label for="name" class="form-label">Name</label>
             <input type="text" id="name" name="name" class="form-input"
-                   value="{{.Driver.Name}}" required>
+                   value="{{.EditUser.Name}}" required>
         </div>
 
         <div class="form-group">
             <label for="email" class="form-label">Email</label>
             <input type="email" id="email" name="email" class="form-input"
-                   value="{{.Driver.Email}}" required>
+                   value="{{.EditUser.Email}}" required>
         </div>
 
+        <div class="form-group">
+            <label for="role" class="form-label">Role</label>
+            <select id="role" name="role" class="form-input" {{if not .IsNew}}disabled{{end}}>
+                <option value="driver" {{if eq .EditUser.Role "driver"}}selected{{end}}>Driver</option>
+                <option value="admin" {{if eq .EditUser.Role "admin"}}selected{{end}}>Admin</option>
+            </select>
+            {{if not .IsNew}}
+            <input type="hidden" name="role" value="{{.EditUser.Role}}">
+            <p class="form-hint">Role cannot be changed after creation</p>
+            {{end}}
+        </div>
+
+        {{if .CanChangePassword}}
         <div class="form-group">
             <label for="password" class="form-label">
                 Password{{if not .IsNew}} (leave blank to keep current){{end}}
@@ -37,27 +50,46 @@
             <input type="password" id="password" name="password" class="form-input"
                    {{if .IsNew}}required{{end}}>
         </div>
+        {{else}}
+        <div class="form-group">
+            <label class="form-label">Password</label>
+            <p class="form-hint">You cannot change another admin's password</p>
+        </div>
+        {{end}}
 
-        <div class="form-row">
+        <div class="form-row" id="driver-fields" {{if .EditUser.IsAdmin}}style="display:none"{{end}}>
             <div class="form-group">
                 <label for="required_day_hours" class="form-label">Required Day Hours</label>
                 <input type="number" id="required_day_hours" name="required_day_hours"
-                       class="form-input" value="{{.Driver.RequiredDayHours}}" min="0" step="0.5">
+                       class="form-input" value="{{.EditUser.RequiredDayHours}}" min="0" step="0.5">
             </div>
 
             <div class="form-group">
                 <label for="required_night_hours" class="form-label">Required Night Hours</label>
                 <input type="number" id="required_night_hours" name="required_night_hours"
-                       class="form-input" value="{{.Driver.RequiredNightHours}}" min="0" step="0.5">
+                       class="form-input" value="{{.EditUser.RequiredNightHours}}" min="0" step="0.5">
             </div>
         </div>
 
         <div class="form-actions">
             <a href="/admin/users" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary">
-                {{if .IsNew}}Create Driver{{else}}Update Driver{{end}}
+                {{if .IsNew}}Create User{{else}}Update User{{end}}
             </button>
         </div>
     </form>
 </div>
+
+{{if .IsNew}}
+<script>
+document.getElementById('role').addEventListener('change', function() {
+    var driverFields = document.getElementById('driver-fields');
+    if (this.value === 'driver') {
+        driverFields.style.display = '';
+    } else {
+        driverFields.style.display = 'none';
+    }
+});
+</script>
+{{end}}
 {{end}}

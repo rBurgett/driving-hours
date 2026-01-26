@@ -62,10 +62,11 @@ func (h *AdminHandler) NewUserForm(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	h.renderer.Render(w, r, "admin/user_form.html", templates.Data{
-		"Title":  "Create User",
-		"User":   user,
-		"IsNew":  true,
-		"Driver": &models.User{Role: models.RoleDriver},
+		"Title":            "Create User",
+		"User":             user,
+		"IsNew":            true,
+		"CanChangePassword": true,
+		"EditUser":         &models.User{Role: models.RoleDriver},
 	})
 }
 
@@ -75,8 +76,15 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	name := r.FormValue("name")
 	password := r.FormValue("password")
+	roleStr := r.FormValue("role")
 	dayHoursStr := r.FormValue("required_day_hours")
 	nightHoursStr := r.FormValue("required_night_hours")
+
+	// Parse and validate role
+	role := models.Role(roleStr)
+	if role != models.RoleAdmin && role != models.RoleDriver {
+		role = models.RoleDriver
+	}
 
 	// Validation
 	var errors []string
@@ -95,14 +103,15 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if len(errors) > 0 {
 		h.renderer.Render(w, r, "admin/user_form.html", templates.Data{
-			"Title":  "Create User",
-			"User":   user,
-			"IsNew":  true,
-			"Errors": errors,
-			"Driver": &models.User{
+			"Title":             "Create User",
+			"User":              user,
+			"IsNew":             true,
+			"CanChangePassword": true,
+			"Errors":            errors,
+			"EditUser": &models.User{
 				Email:              email,
 				Name:               name,
-				Role:               models.RoleDriver,
+				Role:               role,
 				RequiredDayHours:   dayHours,
 				RequiredNightHours: nightHours,
 			},
@@ -114,14 +123,15 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	existing, _ := h.storage.GetUserByEmail(email)
 	if existing != nil {
 		h.renderer.Render(w, r, "admin/user_form.html", templates.Data{
-			"Title":  "Create User",
-			"User":   user,
-			"IsNew":  true,
-			"Errors": []string{"Email already in use"},
-			"Driver": &models.User{
+			"Title":             "Create User",
+			"User":              user,
+			"IsNew":             true,
+			"CanChangePassword": true,
+			"Errors":            []string{"Email already in use"},
+			"EditUser": &models.User{
 				Email:              email,
 				Name:               name,
-				Role:               models.RoleDriver,
+				Role:               role,
 				RequiredDayHours:   dayHours,
 				RequiredNightHours: nightHours,
 			},
@@ -141,7 +151,7 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Email:              email,
 		Name:               name,
 		PasswordHash:       hash,
-		Role:               models.RoleDriver,
+		Role:               role,
 		RequiredDayHours:   dayHours,
 		RequiredNightHours: nightHours,
 		CreatedAt:          now,
@@ -176,31 +186,38 @@ func (h *AdminHandler) ViewDriver(w http.ResponseWriter, r *http.Request) {
 
 func (h *AdminHandler) EditUserForm(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
-	driverID := chi.URLParam(r, "id")
+	editUserID := chi.URLParam(r, "id")
 
-	driver, err := h.storage.GetUser(driverID)
-	if err != nil || driver == nil {
+	editUser, err := h.storage.GetUser(editUserID)
+	if err != nil || editUser == nil {
 		http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 		return
 	}
 
+	// Admins cannot change another admin's password
+	canChangePassword := !editUser.IsAdmin()
+
 	h.renderer.Render(w, r, "admin/user_form.html", templates.Data{
-		"Title":  "Edit " + driver.Name,
-		"User":   user,
-		"IsNew":  false,
-		"Driver": driver,
+		"Title":             "Edit " + editUser.Name,
+		"User":              user,
+		"IsNew":             false,
+		"CanChangePassword": canChangePassword,
+		"EditUser":          editUser,
 	})
 }
 
 func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
-	driverID := chi.URLParam(r, "id")
+	editUserID := chi.URLParam(r, "id")
 
-	driver, err := h.storage.GetUser(driverID)
-	if err != nil || driver == nil {
+	editUser, err := h.storage.GetUser(editUserID)
+	if err != nil || editUser == nil {
 		http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 		return
 	}
+
+	// Admins cannot change another admin's password
+	canChangePassword := !editUser.IsAdmin()
 
 	email := r.FormValue("email")
 	name := r.FormValue("name")
@@ -221,51 +238,77 @@ func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	nightHours, _ := strconv.ParseFloat(nightHoursStr, 64)
 
 	if len(errors) > 0 {
-		driver.Email = email
-		driver.Name = name
-		driver.RequiredDayHours = dayHours
-		driver.RequiredNightHours = nightHours
+		editUser.Email = email
+		editUser.Name = name
+		editUser.RequiredDayHours = dayHours
+		editUser.RequiredNightHours = nightHours
 
 		h.renderer.Render(w, r, "admin/user_form.html", templates.Data{
-			"Title":  "Edit " + driver.Name,
-			"User":   user,
-			"IsNew":  false,
-			"Errors": errors,
-			"Driver": driver,
+			"Title":             "Edit " + editUser.Name,
+			"User":              user,
+			"IsNew":             false,
+			"CanChangePassword": canChangePassword,
+			"Errors":            errors,
+			"EditUser":          editUser,
 		})
 		return
 	}
 
 	// Check if email is taken by another user
 	existing, _ := h.storage.GetUserByEmail(email)
-	if existing != nil && existing.ID != driver.ID {
+	if existing != nil && existing.ID != editUser.ID {
 		h.renderer.Render(w, r, "admin/user_form.html", templates.Data{
-			"Title":  "Edit " + driver.Name,
-			"User":   user,
-			"IsNew":  false,
-			"Errors": []string{"Email already in use"},
-			"Driver": driver,
+			"Title":             "Edit " + editUser.Name,
+			"User":              user,
+			"IsNew":             false,
+			"CanChangePassword": canChangePassword,
+			"Errors":            []string{"Email already in use"},
+			"EditUser":          editUser,
 		})
 		return
 	}
 
-	driver.Email = email
-	driver.Name = name
-	driver.RequiredDayHours = dayHours
-	driver.RequiredNightHours = nightHours
+	editUser.Email = email
+	editUser.Name = name
+	editUser.RequiredDayHours = dayHours
+	editUser.RequiredNightHours = nightHours
 
-	// Update password if provided
-	if password != "" {
+	// Update password if provided (only for drivers, not other admins)
+	if password != "" && canChangePassword {
 		hash, err := auth.HashPassword(password)
 		if err != nil {
 			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 			return
 		}
-		driver.PasswordHash = hash
+		editUser.PasswordHash = hash
 	}
 
-	if err := h.storage.SaveUser(driver); err != nil {
+	if err := h.storage.SaveUser(editUser); err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
+}
+
+func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	user := auth.GetUser(r)
+	deleteUserID := chi.URLParam(r, "id")
+
+	// Prevent self-deletion
+	if deleteUserID == user.ID {
+		http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
+		return
+	}
+
+	deleteUser, err := h.storage.GetUser(deleteUserID)
+	if err != nil || deleteUser == nil {
+		http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
+		return
+	}
+
+	if err := h.storage.DeleteUser(deleteUserID); err != nil {
+		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}
 
