@@ -383,7 +383,7 @@ func (h *AdminHandler) UpdateHours(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/admin/users/"+driverID, http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/users/"+driverID+"/hours", http.StatusSeeOther)
 }
 
 func (h *AdminHandler) Profile(w http.ResponseWriter, r *http.Request) {
