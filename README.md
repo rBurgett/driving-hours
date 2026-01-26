@@ -127,4 +127,4 @@ driving-hours/
 
 ## License
 
-MIT
+Apache 2.0
