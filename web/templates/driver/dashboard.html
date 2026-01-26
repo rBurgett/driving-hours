@@ -45,14 +45,64 @@
 
 <div class="dashboard-grid">
     <div class="dashboard-calendar">
-        <h2>Driving Calendar</h2>
-        {{template "calendar" .Calendar}}
+        <div class="view-tabs">
+            <button class="view-tab active" data-view="calendar">Calendar</button>
+            <button class="view-tab" data-view="list">List</button>
+        </div>
+
+        <div class="view-content" id="calendar-view">
+            {{template "calendar" .Calendar}}
+        </div>
+
+        <div class="view-content" id="list-view" style="display: none;">
+            {{if .Entries}}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day Hours</th>
+                            <th>Night Hours</th>
+                            <th>Total</th>
+                            <th class="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Entries}}
+                        <tr class="entry-row" data-date="{{.Date}}" data-day-hours="{{.DayHours}}" data-night-hours="{{.NightHours}}">
+                            <td>{{.FormattedDate}}</td>
+                            <td>{{formatHours .DayHours}}</td>
+                            <td>{{formatHours .NightHours}}</td>
+                            <td>{{formatHours .TotalHours}}</td>
+                            <td class="actions">
+                                <button type="button" class="btn btn-sm btn-secondary edit-entry-btn">Edit</button>
+                                <form method="POST" action="/driver/log" class="inline-form">
+                                    {{$.CSRFField}}
+                                    <input type="hidden" name="date" value="{{.Date}}">
+                                    <input type="hidden" name="delete" value="1">
+                                    <input type="hidden" name="view" value="list">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?')">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            {{else}}
+            <div class="empty-state">
+                <p>No driving hours logged yet.</p>
+                <p class="text-muted">Use the form to log your first driving session!</p>
+            </div>
+            {{end}}
+        </div>
     </div>
 
     <div class="dashboard-form">
         <h2>Log Hours</h2>
         <form method="POST" action="/driver/log" class="form" id="log-form">
             {{.CSRFField}}
+            <input type="hidden" name="view" id="current-view" value="calendar">
 
             <div class="form-group">
                 <label for="date" class="form-label">Date</label>

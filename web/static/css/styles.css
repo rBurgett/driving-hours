@@ -653,6 +653,53 @@ h3 { font-size: 1.25rem; }
     background: white;
 }
 
+/* View Tabs */
+.view-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.view-tab {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.view-tab:hover {
+    background: var(--background);
+    color: var(--text);
+}
+
+.view-tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.view-content {
+    min-height: 300px;
+}
+
+/* Entry Row */
+.entry-row {
+    cursor: pointer;
+}
+
+.entry-row:hover {
+    background: var(--background);
+}
+
+.entry-row.selected {
+    background: #dbeafe;
+}
+
 /* Dashboard Grid */
 .dashboard-grid {
     display: grid;

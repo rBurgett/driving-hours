@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -11,6 +12,15 @@ import (
 	"driving-hours/internal/templates"
 	"driving-hours/internal/utils"
 )
+
+// DrivingEntry represents a driving log entry for template rendering
+type DrivingEntry struct {
+	Date          string
+	FormattedDate string
+	DayHours      float64
+	NightHours    float64
+	TotalHours    float64
+}
 
 type DriverHandler struct {
 	storage  storage.Storage
@@ -48,6 +58,29 @@ func (h *DriverHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 
+	// Generate sorted list of entries for list view
+	var entries []DrivingEntry
+	for date, entry := range user.DrivingLog {
+		if entry.DayHours > 0 || entry.NightHours > 0 {
+			parsedDate, err := time.Parse("2006-01-02", date)
+			formattedDate := date
+			if err == nil {
+				formattedDate = parsedDate.Format("Jan 2, 2006")
+			}
+			entries = append(entries, DrivingEntry{
+				Date:          date,
+				FormattedDate: formattedDate,
+				DayHours:      entry.DayHours,
+				NightHours:    entry.NightHours,
+				TotalHours:    entry.DayHours + entry.NightHours,
+			})
+		}
+	}
+	// Sort by date descending (most recent first)
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Date > entries[j].Date
+	})
+
 	// Check for fireworks flag from session flash
 	showFireworks := r.URL.Query().Get("celebrate") == "1"
 
@@ -56,6 +89,7 @@ func (h *DriverHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		"User":          user,
 		"Greeting":      utils.GetGreeting(),
 		"Calendar":      calendar,
+		"Entries":       entries,
 		"Today":         time.Now().Format("2006-01-02"),
 		"ShowFireworks": showFireworks,
 	})
@@ -70,9 +104,20 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 	dayMinutesStr := r.FormValue("day_minutes")
 	nightHoursStr := r.FormValue("night_hours")
 	nightMinutesStr := r.FormValue("night_minutes")
+	view := r.FormValue("view")
+
+	// Build redirect URL with view parameter
+	redirectBase := "/driver"
+	if view == "list" {
+		redirectBase = "/driver?view=list"
+	}
 
 	if date == "" {
-		http.Redirect(w, r, "/driver?error=date_required", http.StatusSeeOther)
+		if view == "list" {
+			http.Redirect(w, r, "/driver?view=list&error=date_required", http.StatusSeeOther)
+		} else {
+			http.Redirect(w, r, "/driver?error=date_required", http.StatusSeeOther)
+		}
 		return
 	}
 
@@ -88,7 +133,7 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to delete entry", http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/driver", http.StatusSeeOther)
+		http.Redirect(w, r, redirectBase, http.StatusSeeOther)
 		return
 	}
 
@@ -120,9 +165,13 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 
 	// Only celebrate if hours were actually logged
 	if totalDayHours > 0 || totalNightHours > 0 {
-		http.Redirect(w, r, "/driver?celebrate=1", http.StatusSeeOther)
+		if view == "list" {
+			http.Redirect(w, r, "/driver?view=list&celebrate=1", http.StatusSeeOther)
+		} else {
+			http.Redirect(w, r, "/driver?celebrate=1", http.StatusSeeOther)
+		}
 	} else {
-		http.Redirect(w, r, "/driver", http.StatusSeeOther)
+		http.Redirect(w, r, redirectBase, http.StatusSeeOther)
 	}
 }
 
