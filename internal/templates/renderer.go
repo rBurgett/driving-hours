@@ -110,7 +110,7 @@ func createFuncMap() template.FuncMap {
 			return fmt.Sprintf("%dh %dm", hours, minutes)
 		},
 		"formatDecimal": func(h float64) string {
-			return fmt.Sprintf("%.1f", h)
+			return fmt.Sprintf("%.2f", h)
 		},
 		"percentage": func(current, required float64) float64 {
 			if required <= 0 {
