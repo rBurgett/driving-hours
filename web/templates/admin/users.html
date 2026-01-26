@@ -1,0 +1,57 @@
+{{define "content"}}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1>Manage Users</h1>
+        <p class="text-muted">Create and manage driver accounts</p>
+    </div>
+    <a href="/admin/users/new" class="btn btn-primary">Add Driver</a>
+</div>
+
+{{if .Users}}
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Day Progress</th>
+                <th>Night Progress</th>
+                <th>Total Hours</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Users}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.Email}}</td>
+                <td>
+                    <div class="progress-bar-inline">
+                        <div class="progress-fill" style="width: {{.DayProgress}}%"></div>
+                    </div>
+                    <span class="progress-text">{{formatDecimal .TotalDayHours}}/{{formatDecimal .RequiredDayHours}}h</span>
+                </td>
+                <td>
+                    <div class="progress-bar-inline">
+                        <div class="progress-fill night" style="width: {{.NightProgress}}%"></div>
+                    </div>
+                    <span class="progress-text">{{formatDecimal .TotalNightHours}}/{{formatDecimal .RequiredNightHours}}h</span>
+                </td>
+                <td>{{formatHours .TotalHours}}</td>
+                <td class="actions">
+                    <a href="/admin/users/{{.ID}}" class="btn btn-secondary btn-xs">View</a>
+                    <a href="/admin/users/{{.ID}}/edit" class="btn btn-secondary btn-xs">Edit</a>
+                    <a href="/admin/users/{{.ID}}/hours" class="btn btn-secondary btn-xs">Hours</a>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
+{{else}}
+<div class="empty-state">
+    <p>No users yet.</p>
+    <a href="/admin/users/new" class="btn btn-primary">Add Driver</a>
+</div>
+{{end}}
+{{end}}

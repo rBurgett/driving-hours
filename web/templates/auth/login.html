@@ -1,0 +1,26 @@
+{{define "content"}}
+<div class="auth-container">
+    <div class="auth-card">
+        <h1 class="auth-title">Sign In</h1>
+        <p class="auth-subtitle">Enter your credentials to access your account</p>
+
+        {{if .Error}}
+        <div class="flash flash-error">{{.Error}}</div>
+        {{end}}
+
+        <form method="POST" action="/login" class="auth-form">
+            {{.CSRFField}}
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-input"
+                       value="{{.Email}}" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-input" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+    </div>
+</div>
+{{end}}

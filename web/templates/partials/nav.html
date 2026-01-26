@@ -1,0 +1,23 @@
+{{define "nav"}}
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="{{if isAdmin .User}}/admin{{else}}/driver{{end}}" class="nav-brand">
+            Driving Hours
+        </a>
+        <div class="nav-links">
+            {{if isAdmin .User}}
+            <a href="/admin" class="nav-link">Dashboard</a>
+            <a href="/admin/users" class="nav-link">Users</a>
+            <a href="/admin/profile" class="nav-link">Profile</a>
+            {{else}}
+            <a href="/driver" class="nav-link">Dashboard</a>
+            <a href="/driver/profile" class="nav-link">Profile</a>
+            {{end}}
+            <form action="/logout" method="POST" class="nav-logout">
+                {{.CSRFField}}
+                <button type="submit" class="nav-link logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+{{end}}

@@ -1,0 +1,83 @@
+{{define "content"}}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1>{{.Driver.Name}}</h1>
+        <p class="text-muted">{{.Driver.Email}}</p>
+    </div>
+    <div class="page-actions">
+        <a href="/admin/users/{{.Driver.ID}}/edit" class="btn btn-secondary">Edit Profile</a>
+        <a href="/admin/users/{{.Driver.ID}}/hours" class="btn btn-primary">Edit Hours</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Hours</div>
+        <div class="stat-value-large">{{formatHours .Driver.TotalHours}}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Weekly Average</div>
+        <div class="stat-value-large">{{formatHours .Driver.WeeklyAverage}}</div>
+    </div>
+</div>
+
+<div class="progress-cards">
+    <div class="progress-card">
+        <h3>Day Hours Progress</h3>
+        <div class="progress-big">
+            <div class="progress-bar-big">
+                <div class="progress-fill" style="width: {{.Driver.DayProgress}}%"></div>
+            </div>
+            <div class="progress-stats">
+                <span>{{formatDecimal .Driver.TotalDayHours}}h completed</span>
+                <span>{{formatDecimal .Driver.RequiredDayHours}}h required</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-card">
+        <h3>Night Hours Progress</h3>
+        <div class="progress-big">
+            <div class="progress-bar-big">
+                <div class="progress-fill night" style="width: {{.Driver.NightProgress}}%"></div>
+            </div>
+            <div class="progress-stats">
+                <span>{{formatDecimal .Driver.TotalNightHours}}h completed</span>
+                <span>{{formatDecimal .Driver.RequiredNightHours}}h required</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{if .Driver.DrivingLog}}
+<div class="section">
+    <h2>Driving History</h2>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Day Hours</th>
+                    <th>Night Hours</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range $date, $entry := .Driver.DrivingLog}}
+                <tr>
+                    <td>{{$date}}</td>
+                    <td>{{formatHours $entry.DayHours}}</td>
+                    <td>{{formatHours $entry.NightHours}}</td>
+                    <td>{{formatHours (addFloat $entry.DayHours $entry.NightHours)}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
+
+<div class="form-actions">
+    <a href="/admin/users" class="btn btn-secondary">Back to Users</a>
+</div>
+{{end}}

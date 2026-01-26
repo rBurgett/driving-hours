@@ -1,0 +1,26 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .Title}}{{.Title}} - {{end}}Driving Hours</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    {{if .User}}
+    {{template "nav" .}}
+    {{end}}
+
+    <main class="container">
+        {{template "flash" .}}
+        {{template "content" .}}
+    </main>
+
+    {{if .ShowFireworks}}
+    <script src="/static/js/fireworks.js"></script>
+    {{end}}
+    <script src="/static/js/forms.js"></script>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,51 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p class="text-muted">Overview of all drivers</p>
+</div>
+
+{{if .Drivers}}
+<div class="card-grid">
+    {{range .Drivers}}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{.Name}}</h3>
+            <span class="text-muted">{{.Email}}</span>
+        </div>
+        <div class="card-body">
+            <div class="stat-row">
+                <span class="stat-label">Total Hours</span>
+                <span class="stat-value">{{formatHours .TotalHours}}</span>
+            </div>
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span>Day Hours</span>
+                    <span>{{formatDecimal .TotalDayHours}} / {{formatDecimal .RequiredDayHours}}h</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{.DayProgress}}%"></div>
+                </div>
+            </div>
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span>Night Hours</span>
+                    <span>{{formatDecimal .TotalNightHours}} / {{formatDecimal .RequiredNightHours}}h</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill night" style="width: {{.NightProgress}}%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="/admin/users/{{.ID}}" class="btn btn-secondary btn-sm">View Details</a>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="empty-state">
+    <p>No drivers yet.</p>
+    <a href="/admin/users/new" class="btn btn-primary">Add Driver</a>
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,120 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Edit Hours - {{.Driver.Name}}</h1>
+    <p class="text-muted">Add, edit, or delete driving hour entries</p>
+</div>
+
+<div class="form-container">
+    <form method="POST" action="/admin/users/{{.Driver.ID}}/hours" class="form">
+        {{.CSRFField}}
+
+        <div class="form-group">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" id="date" name="date" class="form-input" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Day Hours</label>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <input type="number" name="day_hours" class="form-input"
+                               value="0" min="0" max="24" placeholder="0">
+                        <span class="time-label">hours</span>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" name="day_minutes" class="form-input"
+                               value="0" min="0" max="59" step="5" placeholder="0">
+                        <span class="time-label">minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Night Hours</label>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <input type="number" name="night_hours" class="form-input"
+                               value="0" min="0" max="24" placeholder="0">
+                        <span class="time-label">hours</span>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" name="night_minutes" class="form-input"
+                               value="0" min="0" max="59" step="5" placeholder="0">
+                        <span class="time-label">minutes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/admin/users/{{.Driver.ID}}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+    </form>
+</div>
+
+{{if .Driver.DrivingLog}}
+<div class="section">
+    <h2>Existing Entries</h2>
+    <p class="text-muted">Click an entry to edit it</p>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Day Hours</th>
+                    <th>Night Hours</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range $date, $entry := .Driver.DrivingLog}}
+                <tr class="clickable-row" data-date="{{$date}}"
+                    data-day-hours="{{$entry.DayHours}}"
+                    data-night-hours="{{$entry.NightHours}}">
+                    <td>{{$date}}</td>
+                    <td>{{formatHours $entry.DayHours}}</td>
+                    <td>{{formatHours $entry.NightHours}}</td>
+                    <td>
+                        <form method="POST" action="/admin/users/{{$.Driver.ID}}/hours" class="inline-form">
+                            {{$.CSRFField}}
+                            <input type="hidden" name="date" value="{{$date}}">
+                            <input type="hidden" name="delete" value="1">
+                            <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
+
+<script>
+document.querySelectorAll('.clickable-row').forEach(row => {
+    row.addEventListener('click', function(e) {
+        if (e.target.tagName === 'BUTTON' || e.target.closest('form')) return;
+
+        const date = this.dataset.date;
+        const dayHours = parseFloat(this.dataset.dayHours);
+        const nightHours = parseFloat(this.dataset.nightHours);
+
+        document.querySelector('input[name="date"]').value = date;
+
+        const dayH = Math.floor(dayHours);
+        const dayM = Math.round((dayHours - dayH) * 60);
+        document.querySelector('input[name="day_hours"]').value = dayH;
+        document.querySelector('input[name="day_minutes"]').value = dayM;
+
+        const nightH = Math.floor(nightHours);
+        const nightM = Math.round((nightHours - nightH) * 60);
+        document.querySelector('input[name="night_hours"]').value = nightH;
+        document.querySelector('input[name="night_minutes"]').value = nightM;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+</script>
+{{end}}

@@ -1,0 +1,101 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>{{.Greeting}}, {{.User.Name}}</h1>
+    <p class="text-muted">Track your progress toward your driving goals</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Hours</div>
+        <div class="stat-value-large">{{formatHours .User.TotalHours}}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Weekly Average</div>
+        <div class="stat-value-large">{{formatHours .User.WeeklyAverage}}</div>
+    </div>
+</div>
+
+<div class="progress-cards">
+    <div class="progress-card">
+        <h3>Day Hours Progress</h3>
+        <div class="progress-big">
+            <div class="progress-bar-big">
+                <div class="progress-fill" style="width: {{.User.DayProgress}}%"></div>
+            </div>
+            <div class="progress-stats">
+                <span>{{formatDecimal .User.TotalDayHours}}h completed</span>
+                <span>{{formatDecimal .User.RequiredDayHours}}h required</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-card">
+        <h3>Night Hours Progress</h3>
+        <div class="progress-big">
+            <div class="progress-bar-big">
+                <div class="progress-fill night" style="width: {{.User.NightProgress}}%"></div>
+            </div>
+            <div class="progress-stats">
+                <span>{{formatDecimal .User.TotalNightHours}}h completed</span>
+                <span>{{formatDecimal .User.RequiredNightHours}}h required</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dashboard-calendar">
+        <h2>Driving Calendar</h2>
+        {{template "calendar" .Calendar}}
+    </div>
+
+    <div class="dashboard-form">
+        <h2>Log Hours</h2>
+        <form method="POST" action="/driver/log" class="form" id="log-form">
+            {{.CSRFField}}
+
+            <div class="form-group">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" id="date" name="date" class="form-input"
+                       value="{{.Today}}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Day Hours</label>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <input type="number" name="day_hours" id="day_hours" class="form-input"
+                               value="0" min="0" max="24" placeholder="0">
+                        <span class="time-label">hours</span>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" name="day_minutes" id="day_minutes" class="form-input"
+                               value="0" min="0" max="59" step="5" placeholder="0">
+                        <span class="time-label">minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Night Hours</label>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <input type="number" name="night_hours" id="night_hours" class="form-input"
+                               value="0" min="0" max="24" placeholder="0">
+                        <span class="time-label">hours</span>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" name="night_minutes" id="night_minutes" class="form-input"
+                               value="0" min="0" max="59" step="5" placeholder="0">
+                        <span class="time-label">minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Log Hours</button>
+        </form>
+    </div>
+</div>
+
+<script src="/static/js/calendar.js"></script>
+{{end}}

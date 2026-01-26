@@ -1,0 +1,57 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Admin Profile</h1>
+    <p class="text-muted">Update your account settings</p>
+</div>
+
+<div class="form-container">
+    {{if .Errors}}
+    <div class="flash flash-error">
+        <ul class="error-list">
+            {{range .Errors}}
+            <li>{{.}}</li>
+            {{end}}
+        </ul>
+    </div>
+    {{end}}
+
+    {{if .Success}}
+    <div class="flash flash-success">{{.Success}}</div>
+    {{end}}
+
+    <form method="POST" action="/admin/profile" class="form">
+        {{.CSRFField}}
+
+        <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-input" value="{{.User.Email}}" disabled>
+            <span class="form-hint">Email cannot be changed</span>
+        </div>
+
+        <div class="form-group">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" id="name" name="name" class="form-input"
+                   value="{{if .Name}}{{.Name}}{{else}}{{.User.Name}}{{end}}" required>
+        </div>
+
+        <hr class="form-divider">
+
+        <h3 class="form-section-title">Change Password</h3>
+        <p class="text-muted">Leave blank to keep current password</p>
+
+        <div class="form-group">
+            <label for="current_password" class="form-label">Current Password</label>
+            <input type="password" id="current_password" name="current_password" class="form-input">
+        </div>
+
+        <div class="form-group">
+            <label for="new_password" class="form-label">New Password</label>
+            <input type="password" id="new_password" name="new_password" class="form-input">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{{end}}
