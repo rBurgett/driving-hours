@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.style.opacity = '0.7';
+                // Re-enable after short delay if still on page (e.g., confirm canceled)
+                setTimeout(() => {
+                    if (document.body.contains(submitBtn)) {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '';
+                    }
+                }, 100);
             }
         });
     });
