@@ -65,6 +65,7 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	date := r.FormValue("date")
+	deleteEntry := r.FormValue("delete") == "1"
 	dayHoursStr := r.FormValue("day_hours")
 	dayMinutesStr := r.FormValue("day_minutes")
 	nightHoursStr := r.FormValue("night_hours")
@@ -72,6 +73,22 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 
 	if date == "" {
 		http.Redirect(w, r, "/driver?error=date_required", http.StatusSeeOther)
+		return
+	}
+
+	// Initialize driving log if nil
+	if user.DrivingLog == nil {
+		user.DrivingLog = make(models.DrivingLog)
+	}
+
+	// Handle delete action
+	if deleteEntry {
+		delete(user.DrivingLog, date)
+		if err := h.storage.SaveUser(user); err != nil {
+			http.Error(w, "Failed to delete entry", http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/driver", http.StatusSeeOther)
 		return
 	}
 
@@ -85,12 +102,7 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 	totalDayHours := dayHours + (dayMinutes / 60)
 	totalNightHours := nightHours + (nightMinutes / 60)
 
-	// Initialize driving log if nil
-	if user.DrivingLog == nil {
-		user.DrivingLog = make(models.DrivingLog)
-	}
-
-	// Set entry (replaces existing)
+	// Set entry (replaces existing) or delete if zero
 	if totalDayHours > 0 || totalNightHours > 0 {
 		user.DrivingLog[date] = models.DayEntry{
 			DayHours:   totalDayHours,
@@ -106,8 +118,12 @@ func (h *DriverHandler) LogHours(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect with celebration flag
-	http.Redirect(w, r, "/driver?celebrate=1", http.StatusSeeOther)
+	// Only celebrate if hours were actually logged
+	if totalDayHours > 0 || totalNightHours > 0 {
+		http.Redirect(w, r, "/driver?celebrate=1", http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, "/driver", http.StatusSeeOther)
+	}
 }
 
 func (h *DriverHandler) Profile(w http.ResponseWriter, r *http.Request) {

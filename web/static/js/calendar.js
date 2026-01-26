@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const nightHoursInput = document.getElementById('night_hours');
     const nightMinutesInput = document.getElementById('night_minutes');
     const form = document.getElementById('log-form');
+    const deleteBtn = document.getElementById('delete-btn');
 
     if (!dateInput || !form) return;
 
@@ -36,12 +37,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (nightHoursInput) nightHoursInput.value = nightH;
                     if (nightMinutesInput) nightMinutesInput.value = nightM;
                 }
+                // Show delete button for existing entries
+                if (deleteBtn) deleteBtn.style.display = 'block';
             } else {
                 // Reset to zero for new entries
                 if (dayHoursInput) dayHoursInput.value = 0;
                 if (dayMinutesInput) dayMinutesInput.value = 0;
                 if (nightHoursInput) nightHoursInput.value = 0;
                 if (nightMinutesInput) nightMinutesInput.value = 0;
+                // Hide delete button for new entries
+                if (deleteBtn) deleteBtn.style.display = 'none';
             }
 
             // Scroll to the form

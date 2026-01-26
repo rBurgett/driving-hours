@@ -92,7 +92,11 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Log Hours</button>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-block">Log Hours</button>
+                <button type="submit" name="delete" value="1" class="btn btn-danger btn-block" id="delete-btn" style="display: none;"
+                        formnovalidate onclick="return confirm('Delete this entry?')">Delete Entry</button>
+            </div>
         </form>
     </div>
 </div>
