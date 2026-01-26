@@ -81,7 +81,7 @@
                             {{$.CSRFField}}
                             <input type="hidden" name="date" value="{{$date}}">
                             <input type="hidden" name="delete" value="1">
-                            <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                            <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Delete this entry?')">Delete</button>
                         </form>
                     </td>
                 </tr>
