@@ -100,3 +100,7 @@ make lint   # Run linter
 - CSRF tokens required on all POST forms
 - Session cookies are HttpOnly, Secure (prod), SameSite=Lax
 - File permissions: 0600 for data files, 0700 for directories
+
+## Other
+
+Ask me any clarifying questions as necessary. If I am wrong, correct me.
