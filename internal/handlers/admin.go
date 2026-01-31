@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"encoding/csv"
+	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -478,4 +482,51 @@ func (h *AdminHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		"User":    user,
 		"Success": success,
 	})
+}
+
+func (h *AdminHandler) ExportDriverCSV(w http.ResponseWriter, r *http.Request) {
+	driverID := chi.URLParam(r, "id")
+
+	driver, err := h.storage.GetUser(driverID)
+	if err != nil || driver == nil {
+		http.Error(w, "Driver not found", http.StatusNotFound)
+		return
+	}
+
+	// Sort dates chronologically
+	var dates []string
+	for date := range driver.DrivingLog {
+		dates = append(dates, date)
+	}
+	sort.Strings(dates)
+
+	// Sanitize driver name for filename
+	safeName := strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' {
+			return r
+		}
+		return '_'
+	}, driver.Name)
+	filename := fmt.Sprintf("%s_driving_hours.csv", safeName)
+
+	// Set headers for CSV download
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+
+	// Write CSV
+	csvWriter := csv.NewWriter(w)
+	defer csvWriter.Flush()
+
+	// Write header
+	csvWriter.Write([]string{"Date", "Daytime", "Nighttime"})
+
+	// Write data rows
+	for _, date := range dates {
+		entry := driver.DrivingLog[date]
+		csvWriter.Write([]string{
+			date,
+			fmt.Sprintf("%.2f", entry.DayHours),
+			fmt.Sprintf("%.2f", entry.NightHours),
+		})
+	}
 }

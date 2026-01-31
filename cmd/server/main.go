@@ -121,6 +121,7 @@ func main() {
 		r.Post("/users/{id}/delete", adminHandler.DeleteUser)
 		r.Get("/users/{id}/hours", adminHandler.EditHoursForm)
 		r.Post("/users/{id}/hours", adminHandler.UpdateHours)
+		r.Get("/users/{id}/export.csv", adminHandler.ExportDriverCSV)
 		r.Get("/profile", adminHandler.Profile)
 		r.Post("/profile", adminHandler.UpdateProfile)
 	})

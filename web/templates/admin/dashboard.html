@@ -36,8 +36,9 @@
                 </div>
             </div>
         </div>
-        <div class="card-footer">
+        <div class="card-footer card-footer-actions">
             <a href="/admin/users/{{.ID}}" class="btn btn-secondary btn-sm">View Details</a>
+            <a href="/admin/users/{{.ID}}/export.csv" class="btn btn-secondary btn-sm">Export CSV</a>
         </div>
     </div>
     {{end}}
